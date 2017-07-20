@@ -145,8 +145,42 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_PAINT:
         {
             PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
-            // TODO: HDC を使用する描画コードをここに追加してください...
+            BeginPaint(hWnd, &ps);
+
+            // Obtain the size of the drawing area.
+            RECT rc;
+            GetClientRect(
+                hWnd,
+                &rc
+            );
+
+
+            // Save the original object
+            HGDIOBJ original = NULL;
+            original = SelectObject(
+                ps.hdc,
+                GetStockObject(DC_PEN)
+            );
+
+            // Create a pen.            
+            HPEN blackPen = CreatePen(PS_SOLID, 3, 0xefefef);
+
+            // Select the pen.
+            SelectObject(ps.hdc, blackPen);
+
+            // Draw a rectangle.
+            Rectangle(
+                ps.hdc,
+                rc.left + 100,
+                rc.top + 100,
+                rc.right - 100,
+                rc.bottom - 100);
+
+            DeleteObject(blackPen);
+
+            // Restore the original object
+            SelectObject(ps.hdc, original);
+
             EndPaint(hWnd, &ps);
         }
         break;

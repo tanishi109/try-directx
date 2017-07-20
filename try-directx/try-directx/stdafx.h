@@ -17,5 +17,10 @@
 #include <memory.h>
 #include <tchar.h>
 
+// DirectX
+#include <d2d1.h>
+#include <d2d1helper.h>
+#include <d2dbasetypes.h>
+#include <d2derr.h>
 
 // TODO: プログラムに必要な追加ヘッダーをここで参照してください
