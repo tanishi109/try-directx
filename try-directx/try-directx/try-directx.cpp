@@ -45,46 +45,11 @@ enum Object {
 	OBJ_UNKNOWN,
 };
 
+Object* gState = new Object[gStageWidth * gStageHeight]; //状態配列確保
+
 //関数プロトタイプ
 void initialize(Object* state, int w, int h, const char* stageData);
-// void draw(const Object* state, int w, int h);
-// void update(Object* state, char input, int w, int h);
-// bool checkClear(const Object* state, int w, int h);
-
-Object* getStage() {
-	//一次元配列である理由は本文参照
-	Object* state = new Object[gStageWidth * gStageHeight]; //状態配列確保
-
-	initialize(state, gStageWidth, gStageHeight, gStageData); //ステージ初期化
-															  //メインループ
-
-	return state;
-	// while (true) {
-	// まず描画
-	//draw(state, gStageWidth, gStageHeight);
-	//クリアチェック
-	// if (checkClear(state, gStageWidth, gStageHeight)) {
-	// 	break; //クリアチェック
-	// }
-	// //入力取得
-	// cout << "a:left s:right w:up z:down. command?" << endl; //操作説明
-	// char input;
-	// cin >> input;
-	// //更新
-	// update(state, input, gStageWidth, gStageHeight);
-	// }
-	//祝いのメッセージ
-	// cout << "Congratulation's! you won." << endl;
-	//後始末
-	// delete[] state;
-	// state = 0;
-
-	//Visual Studioから実行する人のために無限ループ。コマンドラインからはCtrl-Cで終えてください。
-	// while (true) {
-	// 	;
-	// }
-	// return 0;
-}
+void update(Object* state, char input, int w, int h);
 
 //---------------------以下関数定義------------------------------------------
 
@@ -112,18 +77,6 @@ void initialize(Object* state, int width, int /* height */, const char* stageDat
 			state[y*width + x] = t; //書き込み
 			++x;
 		}
-	}
-}
-
-void draw(const Object* state, int width, int height) {
-	const char font[] = { ' ', '#', '.', 'o', 'O', 'p', 'P' }; //Object列挙の順
-
-	for (int y = 0; y < height; ++y) {
-		for (int x = 0; x < width; ++x) {
-			Object o = state[y*width + x];
-			cout << font[o];
-		}
-		cout << endl;
 	}
 }
 
@@ -183,16 +136,6 @@ void update(Object* s, char input, int w, int h) {
 	}
 }
 
-//ブロックのみがなければクリアしている。
-bool checkClear(const Object* s, int width, int height) {
-	for (int i = 0; i < width*height; ++i) {
-		if (s[i] == OBJ_BLOCK) {
-			return false;
-		}
-	}
-	return true;
-}
-
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPWSTR    lpCmdLine,
@@ -243,6 +186,9 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	WNDCLASSEXW wcex;
 
 	wcex.cbSize = sizeof(WNDCLASSEX);
+
+	//一次元配列である理由は本文参照
+	initialize(gState, gStageWidth, gStageHeight, gStageData); //ステージ初期化
 
 	wcex.style = CS_HREDRAW | CS_VREDRAW;
 	wcex.lpfnWndProc = WndProc;
@@ -322,23 +268,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		if (wParam == VK_LEFT) {
 			OutputDebugString(_T("left!"));
+			update(gState, 'a', gStageWidth, gStageHeight);
 		}
 		else if (wParam == VK_RIGHT) {
 			OutputDebugString(_T("right!"));
+			update(gState, 's', gStageWidth, gStageHeight);
 		}
 		else if (wParam == VK_UP) {
 			OutputDebugString(_T("up!"));
+			update(gState, 'w', gStageWidth, gStageHeight);
 		}
 		else if (wParam == VK_DOWN) {
 			OutputDebugString(_T("down!"));
+			update(gState, 'z', gStageWidth, gStageHeight);
 		}
+		RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE | RDW_INTERNALPAINT);
 	}
 	break;
 	case WM_PAINT:
 	{
-		Object* stage = getStage();
-
 		const char font[] = { ' ', '#', '.', 'o', 'O', 'p', 'P' }; //Object列挙の順
+		OutputDebugString(_T("paint!"));
 
 		PAINTSTRUCT ps;
 		BeginPaint(hWnd, &ps);
@@ -368,7 +318,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		for (int y = 0; y < gStageHeight; ++y) {
 			for (int x = 0; x < gStageWidth; ++x) {
-				Object o = stage[y * gStageWidth + x];
+				Object o = gState[y * gStageWidth + x];
 				if (font[o] == '#') {
 					// Select the pen.
 					SelectObject(ps.hdc, blackPen);
