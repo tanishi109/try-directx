@@ -318,6 +318,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 	}
 	break;
+	case WM_KEYDOWN:
+	{
+		if (wParam == VK_LEFT) {
+			OutputDebugString(_T("left!"));
+		}
+		else if (wParam == VK_RIGHT) {
+			OutputDebugString(_T("right!"));
+		}
+		else if (wParam == VK_UP) {
+			OutputDebugString(_T("up!"));
+		}
+		else if (wParam == VK_DOWN) {
+			OutputDebugString(_T("down!"));
+		}
+	}
+	break;
 	case WM_PAINT:
 	{
 		Object* stage = getStage();
