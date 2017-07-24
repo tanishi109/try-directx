@@ -50,6 +50,7 @@ Object* gState = new Object[gStageWidth * gStageHeight]; //状態配列確保
 //関数プロトタイプ
 void initialize(Object* state, int w, int h, const char* stageData);
 void update(Object* state, char input, int w, int h);
+bool checkClear(const Object* state, int w, int h);
 
 //---------------------以下関数定義------------------------------------------
 
@@ -134,6 +135,16 @@ void update(Object* s, char input, int w, int h) {
 			s[p] = (s[p] == OBJ_MAN_ON_GOAL) ? OBJ_GOAL : OBJ_SPACE;
 		}
 	}
+}
+
+//ブロックのみがなければクリアしている。
+bool checkClear(const Object* s, int width, int height) {
+	for (int i = 0; i < width*height; ++i) {
+		if (s[i] == OBJ_BLOCK) {
+			return false;
+		}
+	}
+	return true;
 }
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
@@ -283,6 +294,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			update(gState, 'z', gStageWidth, gStageHeight);
 		}
 		RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE | RDW_INTERNALPAINT);
+		if (checkClear(gState, gStageWidth, gStageHeight)) {
+			OutputDebugString(_T("++ Clear! ++"));
+		}
 	}
 	break;
 	case WM_PAINT:
