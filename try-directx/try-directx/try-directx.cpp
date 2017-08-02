@@ -17,9 +17,6 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
-
-
-
 #include <iostream>
 using namespace std;
 
@@ -171,7 +168,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_TRYDIRECTX));
 
 	MSG msg;
-
 	// メイン メッセージ ループ:
 	while (GetMessage(&msg, nullptr, 0, 0))
 	{
@@ -212,6 +208,36 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	wcex.lpszMenuName = MAKEINTRESOURCEW(IDC_TRYDIRECTX);
 	wcex.lpszClassName = szWindowClass;
 	wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+
+	RAWINPUTDEVICE Rid[4];
+
+	Rid[0].usUsagePage = 0x01;
+	Rid[0].usUsage = 0x05;
+	Rid[0].dwFlags = 0;                 // adds game pad
+	Rid[0].hwndTarget = 0;
+
+	Rid[1].usUsagePage = 0x01;
+	Rid[1].usUsage = 0x04;
+	Rid[1].dwFlags = 0;                 // adds joystick
+	Rid[1].hwndTarget = 0;
+
+	Rid[2].usUsagePage = 0x0B;
+	Rid[2].usUsage = 0x00;
+	Rid[2].dwFlags = RIDEV_PAGEONLY;    //adds devices from telephony page
+	Rid[2].hwndTarget = 0;
+
+	Rid[3].usUsagePage = 0x0B;
+	Rid[3].usUsage = 0x02;
+	Rid[3].dwFlags = RIDEV_EXCLUDE;     //excludes answering machines
+	Rid[3].hwndTarget = 0;
+
+	if (RegisterRawInputDevices(Rid, 4, sizeof(Rid[0])) == FALSE) {
+		//registration failed. Call GetLastError for the cause of the error.
+		OutputDebugString(_T("------------test"));
+	}
+	else {
+		OutputDebugString(_T("************test"));
+	}
 
 	return RegisterClassExW(&wcex);
 }
@@ -374,6 +400,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		EndPaint(hWnd, &ps);
 
+	}
+	break;
+	case WM_INPUT:
+	{
+		UINT dwSize;
+
+		GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &dwSize,
+			sizeof(RAWINPUTHEADER));
+		LPBYTE lpb = new BYTE[dwSize];
+		if (lpb == NULL)
+		{
+			return 0;
+		}
+
+		if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize,
+			sizeof(RAWINPUTHEADER)) != dwSize)
+			OutputDebugString(TEXT("GetRawInputData does not return correct size !\n"));
+
+		RAWINPUT* raw = (RAWINPUT*)lpb;
+
+		OutputDebugString(_T("test!"));
+
+		delete[] lpb;
+		return 0;
 	}
 	break;
 	case WM_DESTROY:
